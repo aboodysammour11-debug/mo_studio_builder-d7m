@@ -8,7 +8,7 @@ Create custom applications, add fields, customize generated forms and lists,
 manage access, open automation shortcuts, and edit page layouts from a Studio-like
 interface directly inside Odoo.
     """,
-    "version": "17.0.1.0.0",
+    "version": "17.0.2.0.0",
     "category": "Administration",
     "author": "abdulrahman sammour",
     "website": "https://apps.odoo.com",
