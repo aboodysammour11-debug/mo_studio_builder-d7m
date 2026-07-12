@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620">
+  <rect width="1000" height="620" fill="#ffffff"/>
+  <rect x="40" y="40" width="920" height="540" rx="20" fill="#f8f6f9" stroke="#d9d2dc"/>
+  <text x="90" y="110" fill="#17212b" font-family="Segoe UI, Arial" font-size="38" font-weight="800">Suggested Features</text>
+  <g font-family="Segoe UI, Arial" font-size="20" fill="#17212b">
+    <rect x="100" y="170" width="22" height="22" fill="#6f4566"/><text x="145" y="190" font-weight="700">Contact details</text>
+    <rect x="540" y="170" width="22" height="22" fill="#6f4566"/><text x="585" y="190" font-weight="700">User assignment</text>
+    <rect x="100" y="250" width="22" height="22" fill="#6f4566"/><text x="145" y="270" font-weight="700">Date &amp; Calendar</text>
+    <rect x="540" y="250" width="22" height="22" fill="#fff" stroke="#b8cbd8"/><text x="585" y="270" font-weight="700">Pipeline stages</text>
+    <rect x="100" y="330" width="22" height="22" fill="#6f4566"/><text x="145" y="350" font-weight="700">Tags</text>
+    <rect x="540" y="330" width="22" height="22" fill="#6f4566"/><text x="585" y="350" font-weight="700">Picture</text>
+    <rect x="100" y="410" width="22" height="22" fill="#fff" stroke="#b8cbd8"/><text x="145" y="430" font-weight="700">Notes</text>
+    <rect x="540" y="410" width="22" height="22" fill="#6f4566"/><text x="585" y="430" font-weight="700">Custom sorting</text>
+  </g>
+  <rect x="720" y="500" width="190" height="48" rx="8" fill="#6f4566"/>
+  <text x="758" y="531" fill="#fff" font-family="Segoe UI, Arial" font-size="19" font-weight="800">Create Your App</text>
+</svg>

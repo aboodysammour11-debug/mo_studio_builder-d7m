@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="620" viewBox="0 0 1000 620">
+  <rect width="1000" height="620" fill="#f4f6f8"/>
+  <rect x="45" y="48" width="250" height="524" fill="#22303a"/>
+  <text x="72" y="90" fill="#d8e6ed" font-family="Segoe UI, Arial" font-size="18" font-weight="800">EXISTING FIELDS</text>
+  <g font-family="Segoe UI, Arial" font-size="16" fill="#17212b">
+    <rect x="72" y="122" width="190" height="48" fill="#fff4ce"/><text x="92" y="153">Approval Status</text>
+    <rect x="72" y="184" width="190" height="48" fill="#f5f8fa"/><text x="92" y="215">Customer</text>
+    <rect x="72" y="246" width="190" height="48" fill="#f5f8fa"/><text x="92" y="277">Date</text>
+    <rect x="72" y="308" width="190" height="48" fill="#f5f8fa"/><text x="92" y="339">Notes</text>
+  </g>
+  <rect x="330" y="48" width="600" height="524" fill="#fff" stroke="#d9e2ea"/>
+  <text x="365" y="94" fill="#6f4566" font-family="Segoe UI, Arial" font-size="18" font-weight="800">PROPERTIES</text>
+  <g font-family="Segoe UI, Arial" font-size="17" fill="#17212b">
+    <text x="365" y="150">Label</text>
+    <rect x="365" y="168" width="500" height="42" rx="5" fill="#fff" stroke="#c5d2db"/>
+    <text x="384" y="196" fill="#5d6b7a">Approval Status</text>
+    <text x="365" y="250">Technical Name</text>
+    <rect x="365" y="268" width="500" height="42" rx="5" fill="#edf0f2" stroke="#c5d2db"/>
+    <text x="384" y="296" fill="#5d6b7a">x_approval_status</text>
+    <text x="365" y="350">Selection Options</text>
+    <rect x="365" y="368" width="500" height="100" rx="5" fill="#fff" stroke="#c5d2db"/>
+    <text x="384" y="400" fill="#5d6b7a">draft:Draft</text>
+    <text x="384" y="430" fill="#5d6b7a">approved:Approved</text>
+  </g>
+  <rect x="365" y="500" width="190" height="46" rx="7" fill="#6f4566"/>
+  <text x="400" y="529" fill="#fff" font-family="Segoe UI, Arial" font-size="17" font-weight="800">Save Properties</text>
+  <rect x="570" y="500" width="150" height="46" rx="7" fill="#e3dbe5"/>
+  <text x="603" y="529" fill="#17212b" font-family="Segoe UI, Arial" font-size="17" font-weight="700">Add to Form</text>
+</svg>

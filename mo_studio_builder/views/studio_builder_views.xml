@@ -110,7 +110,24 @@
                     </group>
 
                     <notebook>
-                        <page string="Suggested Features">
+                            <page string="Suggested Features">
+                                <div class="alert alert-info" role="alert">
+                                    <strong>Suggested Features Help</strong>
+                                    <ul class="mb-0">
+                                        <li><strong>Contact details:</strong> adds Customer, Phone, and Email fields.</li>
+                                        <li><strong>User assignment:</strong> adds a Responsible user field.</li>
+                                        <li><strong>Date &amp; Calendar:</strong> adds a Date field for deadlines or calendar tracking.</li>
+                                        <li><strong>Date Range &amp; Gantt:</strong> adds Start Date and End Date fields.</li>
+                                        <li><strong>Pipeline Stages:</strong> adds a Status field for workflow stages.</li>
+                                        <li><strong>Tags:</strong> adds tags for categorizing and filtering records.</li>
+                                        <li><strong>Picture:</strong> adds an image field to each record.</li>
+                                        <li><strong>Notes:</strong> adds a rich notes/description field.</li>
+                                        <li><strong>Company:</strong> adds a company field for multi-company records.</li>
+                                        <li><strong>Monetary value:</strong> adds Amount and Currency fields.</li>
+                                        <li><strong>Custom Sorting:</strong> adds Sequence for manual ordering.</li>
+                                        <li><strong>Archiving:</strong> adds Active so records can be archived.</li>
+                                    </ul>
+                                </div>
                             <group>
                                 <group string="Records">
                                     <field name="feature_contact"/>
@@ -130,7 +147,23 @@
                                 </group>
                             </group>
                         </page>
-                        <page string="Fields">
+                            <page string="Fields">
+                                <div class="alert alert-info" role="alert">
+                                    <strong>Fields Help</strong>
+                                    <p class="mb-1">
+                                        Use <strong>Selection</strong> when you need a dropdown. Write options in
+                                        <strong>Selection Options</strong> as one option per line using <code>key:Label</code>.
+                                    </p>
+                                    <pre class="mb-2">yes:Yes
+no:No
+pending:Pending
+approved:Approved</pre>
+                                    <p class="mb-0">
+                                        Use <strong>Many2one</strong> to link one record, like one Customer.
+                                        Use <strong>Many2many</strong> to link multiple records, like many Tags or Employees.
+                                        For relation fields, choose the target model in <strong>Related Model</strong>.
+                                    </p>
+                                </div>
                             <field name="field_line_ids" context="{'default_app_id': id}">
                                 <tree editable="bottom">
                                     <field name="sequence" widget="handle"/>

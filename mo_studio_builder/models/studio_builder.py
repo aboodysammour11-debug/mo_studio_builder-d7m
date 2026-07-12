@@ -23,6 +23,17 @@ FIELD_TYPES = [
     ("image", "Image"),
 ]
 
+VALID_FIELD_TYPES = {key for key, _label in FIELD_TYPES}
+FIELD_TYPE_ALIASES = {
+    "": "char",
+    "text short": "char",
+    "multiline": "text",
+    "multiline text": "text",
+    "decimal": "float",
+    "checkbox": "boolean",
+    "file": "binary",
+}
+
 
 def slugify(value, prefix="x_"):
     value = (value or "").strip().lower()
@@ -33,6 +44,12 @@ def slugify(value, prefix="x_"):
     if not value.startswith(prefix):
         value = f"{prefix}{value}"
     return value[:63]
+
+
+def normalize_field_type(value):
+    value = (value or "").strip().lower()
+    value = FIELD_TYPE_ALIASES.get(value, value)
+    return value if value in VALID_FIELD_TYPES else "char"
 
 
 class StudioBuilderApp(models.Model):
@@ -234,6 +251,7 @@ class StudioBuilderApp(models.Model):
             [("model_id", "=", model.id)],
             order="state desc, name",
         )
+        ordered_names = self._ordered_field_names(model.model, "form")
         fields_data = []
         for field in field_records:
             fields_data.append({
@@ -251,6 +269,7 @@ class StudioBuilderApp(models.Model):
                     for selection in field.selection_ids.sorted("sequence")
                 ),
                 "can_make_required": self._can_make_required(model, field.name),
+                "in_form": field.name in ordered_names,
             })
         views = self.env["ir.ui.view"].sudo().search_read(
             [("model", "=", model.model), ("type", "in", ["form", "tree", "kanban", "search", "calendar", "pivot", "graph"])],
@@ -263,8 +282,12 @@ class StudioBuilderApp(models.Model):
             "model_label": model.name,
             "is_custom_model": model.state == "manual",
             "fields": fields_data,
+            "form_field_order": ordered_names,
             "views": views,
             "field_types": FIELD_TYPES,
+            "access_rows": self._access_rows(model),
+            "automation_rows": self._automation_rows(model),
+            "report_rows": self._report_rows(model),
         }
 
     @api.model
@@ -272,7 +295,8 @@ class StudioBuilderApp(models.Model):
         model = self.env["ir.model"].sudo().search([("model", "=", model_name)], limit=1)
         if not model:
             raise UserError(_("Model %s was not found.") % model_name)
-        field_type = values.get("ttype") or "char"
+        values = values or {}
+        field_type = normalize_field_type(values.get("ttype"))
         label = values.get("name") or dict(FIELD_TYPES).get(field_type) or _("Custom Field")
         technical_name = slugify(values.get("technical_name") or label)
         relation = values.get("relation_model")
@@ -316,8 +340,7 @@ class StudioBuilderApp(models.Model):
         ], limit=1)
         if not field:
             raise UserError(_("Field %s was not found.") % field_name)
-        if field.state != "manual":
-            raise UserError(_("Only custom fields can be edited from Studio Builder. Use the advanced Fields editor for base fields."))
+        values = values or {}
         writable = {
             "field_description": values.get("field_description") or field.field_description,
             "help": values.get("help") or False,
@@ -326,7 +349,21 @@ class StudioBuilderApp(models.Model):
         }
         if writable["required"] and not self._can_make_required(model, field.name):
             raise UserError(_("This field has empty values on existing records. Fill them first, then make it required."))
-        field.write(writable)
+        if field.state == "manual":
+            technical_name = values.get("technical_name") or values.get("name")
+            if technical_name and technical_name != field.name:
+                writable["name"] = slugify(technical_name)
+            if values.get("ttype"):
+                writable["ttype"] = "binary" if normalize_field_type(values.get("ttype")) == "image" else normalize_field_type(values.get("ttype"))
+            if values.get("relation"):
+                writable["relation"] = values.get("relation")
+            field.write(writable)
+        else:
+            field.write({
+                "field_description": writable["field_description"],
+                "help": writable["help"],
+            })
+            self._ensure_field_view_attributes(model, field, values)
         if field.ttype == "selection" and values.get("selection_options"):
             self.env["ir.model.fields"].sudo().invalidate_model(["selection_ids"])
             self.env["ir.model.fields.selection"].sudo()._update_selection(
@@ -337,7 +374,7 @@ class StudioBuilderApp(models.Model):
         return self.get_page_editor_context(model.model)
 
     @api.model
-    def add_existing_field_to_view(self, model_name, field_name, view_type="form"):
+    def add_existing_field_to_view(self, model_name, field_name, view_type="form", after_field_name=None):
         model = self.env["ir.model"].sudo().search([("model", "=", model_name)], limit=1)
         if not model:
             raise UserError(_("Model %s was not found.") % model_name)
@@ -349,7 +386,21 @@ class StudioBuilderApp(models.Model):
             raise UserError(_("Field %s was not found.") % field_name)
         if view_type not in ("form", "tree"):
             view_type = "form"
-        self._ensure_inherited_view_field(model, field, view_type)
+        self._ensure_inherited_view_field(model, field, view_type, after_field_name=after_field_name)
+        return self.get_page_editor_context(model.model)
+
+    @api.model
+    def move_field_in_view(self, model_name, field_name, after_field_name=None, view_type="form"):
+        model = self.env["ir.model"].sudo().search([("model", "=", model_name)], limit=1)
+        if not model:
+            raise UserError(_("Model %s was not found.") % model_name)
+        field = self.env["ir.model.fields"].sudo().search([
+            ("model_id", "=", model.id),
+            ("name", "=", field_name),
+        ], limit=1)
+        if not field:
+            raise UserError(_("Field %s was not found.") % field_name)
+        self._ensure_field_moved_in_view(model, field, view_type, after_field_name=after_field_name)
         return self.get_page_editor_context(model.model)
 
     @api.model
@@ -507,6 +558,7 @@ class StudioBuilderApp(models.Model):
     def _ensure_field(self, model, name, label, ttype, relation=None, required=False, selection_options=None, currency_field=None):
         Field = self.env["ir.model.fields"].sudo()
         name = slugify(name)
+        ttype = normalize_field_type(ttype)
         existing = Field.search([("model_id", "=", model.id), ("name", "=", name)], limit=1)
         if existing:
             return existing
@@ -568,6 +620,8 @@ class StudioBuilderApp(models.Model):
             arch = view.arch_base or view.arch_db or "<data/>"
             root = etree.fromstring(arch.encode())
             if root.xpath(f".//field[@name='{field.name}']"):
+                if after_field_name:
+                    self._ensure_field_moved_in_view(model, field, view_type, after_field_name=after_field_name)
                 return view
             if after_field_name and not root.xpath(f".//field[@name='{after_field_name}']") and f'name="{after_field_name}"' not in base_arch:
                 after_field_name = None
@@ -594,6 +648,129 @@ class StudioBuilderApp(models.Model):
             "priority": 99,
             "arch_base": arch,
         })
+
+    def _ensure_field_moved_in_view(self, model, field, view_type, after_field_name=None):
+        if not after_field_name or after_field_name == field.name:
+            return False
+        View = self.env["ir.ui.view"].sudo()
+        base_view = View.search([
+            ("model", "=", model.model),
+            ("type", "=", view_type),
+            ("inherit_id", "=", False),
+        ], order="priority, id", limit=1)
+        if not base_view:
+            return False
+        name = f"{model.model}.{view_type}.mo_studio_builder_layout"
+        view = View.search([
+            ("name", "=", name),
+            ("model", "=", model.model),
+            ("inherit_id", "=", base_view.id),
+        ], limit=1)
+        move_xml = (
+            f'<xpath expr="//field[@name=\'{after_field_name}\']" position="after">'
+            f'<xpath expr="//field[@name=\'{field.name}\']" position="move"/>'
+            '</xpath>'
+        )
+        if view:
+            arch = view.arch_base or view.arch_db or "<data/>"
+            root = etree.fromstring(arch.encode())
+            for node in root.xpath(f".//xpath[contains(@expr, \"@name='{field.name}'\")]"):
+                parent = node.getparent()
+                if parent is not None:
+                    parent.remove(node)
+            root.append(etree.fromstring(move_xml.encode()))
+            view.write({"arch_base": etree.tostring(root, encoding="unicode")})
+            return view
+        return View.create({
+            "name": name,
+            "model": model.model,
+            "type": view_type,
+            "inherit_id": base_view.id,
+            "mode": "extension",
+            "priority": 100,
+            "arch_base": f"<data>{move_xml}</data>",
+        })
+
+    def _ensure_field_view_attributes(self, model, field, values):
+        View = self.env["ir.ui.view"].sudo()
+        base_view = View.search([
+            ("model", "=", model.model),
+            ("type", "=", "form"),
+            ("inherit_id", "=", False),
+        ], order="priority, id", limit=1)
+        if not base_view:
+            return False
+        attrs = {
+            "string": values.get("field_description") or field.field_description,
+            "help": values.get("help") or "",
+            "required": "1" if values.get("required") else "0",
+            "readonly": "1" if values.get("readonly") else "0",
+        }
+        attr_nodes = "".join(f'<attribute name="{key}">{escape(val)}</attribute>' for key, val in attrs.items())
+        item_xml = f'<xpath expr="//field[@name=\'{field.name}\']" position="attributes">{attr_nodes}</xpath>'
+        name = f"{model.model}.form.mo_studio_builder_attrs.{field.name}"
+        view = View.search([
+            ("name", "=", name),
+            ("model", "=", model.model),
+            ("inherit_id", "=", base_view.id),
+        ], limit=1)
+        values_to_write = {
+            "name": name,
+            "model": model.model,
+            "type": "form",
+            "inherit_id": base_view.id,
+            "mode": "extension",
+            "priority": 101,
+            "arch_base": f"<data>{item_xml}</data>",
+        }
+        if view:
+            view.write(values_to_write)
+            return view
+        return View.create(values_to_write)
+
+    def _ordered_field_names(self, model_name, view_type):
+        View = self.env["ir.ui.view"].sudo()
+        view = View.search([
+            ("model", "=", model_name),
+            ("type", "=", view_type),
+        ], order="priority desc, id desc", limit=1)
+        if not view:
+            return []
+        try:
+            arch = view.get_combined_arch()
+        except Exception:
+            arch = view.arch_base or view.arch_db or ""
+        try:
+            root = etree.fromstring(arch.encode())
+        except Exception:
+            return []
+        names = []
+        for node in root.xpath(".//field[@name]"):
+            name = node.get("name")
+            if name and name not in names:
+                names.append(name)
+        return names
+
+    def _access_rows(self, model):
+        return self.env["ir.model.access"].sudo().search_read(
+            [("model_id", "=", model.id)],
+            ["name", "group_id", "perm_read", "perm_write", "perm_create", "perm_unlink"],
+            limit=30,
+        )
+
+    def _automation_rows(self, model):
+        return self.env["base.automation"].sudo().search_read(
+            [("model_id", "=", model.id)],
+            ["name", "active", "trigger"],
+            limit=30,
+        )
+
+    def _report_rows(self, model):
+        return self.env["ir.actions.report"].sudo().search_read(
+            [("model", "=", model.model)],
+            ["name", "report_type", "report_name"],
+            limit=30,
+        )
 
     def _view_insert_spec(self, view_type, field_xml, after_field_name=None):
         if after_field_name:

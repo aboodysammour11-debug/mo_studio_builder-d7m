@@ -6,6 +6,7 @@
                 class="o_mo_studio_navbar_btn d-none d-md-inline-flex align-items-center gap-1"
                 type="button"
                 title="Studio Builder"
+                t-if="this.canUseStudioBuilder()"
                 t-on-click="this.openStudioBuilder"
             >
                 <i class="fa fa-magic"/>
@@ -79,13 +80,18 @@
                             </div>
                             <div class="o_mo_studio_dropzone"
                                  t-on-dragover="(ev) => ev.preventDefault()"
-                                 t-on-drop="(ev) => { ev.preventDefault(); this.dropField(ev, null); }">
+                                 t-on-drop="(ev) => this.dropField(ev, null)">
                                 Drop here to add at the top
                             </div>
                             <div class="o_mo_studio_preview_grid">
                                 <t t-foreach="this.previewFields" t-as="field" t-key="field.id">
-                                    <div t-att-class="{'o_mo_studio_preview_field': true, active: state.selectedField &amp;&amp; state.selectedField.name === field.name}"
+                                    <div t-att-class="{'o_mo_studio_preview_field': true, active: state.selectedField &amp;&amp; state.selectedField.name === field.name, dragging: state.draggingFieldName === field.name}"
+                                         draggable="true"
+                                         t-on-dragstart="(ev) => this.startFieldDrag(ev, field)"
                                          t-on-click="() => this.selectExistingField(field)">
+                                        <button class="o_mo_studio_field_handle" type="button" title="Drag field">
+                                            <i class="fa fa-bars"/>
+                                        </button>
                                         <label>
                                             <span t-esc="field.field_description"/>
                                             <small t-esc="field.ttype"/>
@@ -96,7 +102,7 @@
                                     </div>
                                     <div class="o_mo_studio_dropzone o_mo_studio_dropzone_inline"
                                          t-on-dragover="(ev) => ev.preventDefault()"
-                                         t-on-drop="(ev) => { ev.preventDefault(); this.dropField(ev, field.name); }">
+                                         t-on-drop="(ev) => this.dropField(ev, field.name)">
                                         Drop after <t t-esc="field.field_description"/>
                                     </div>
                                 </t>
@@ -121,20 +127,25 @@
                             <t t-elif="state.panel === 'properties' and state.selectedField">
                                 <div class="o_mo_studio_panel_title">Properties</div>
                                 <label class="form-label">Label</label>
-                                <input class="form-control mb-2" t-model="state.selectedField.field_description" t-att-disabled="state.selectedField.state !== 'manual'"/>
+                                <div t-if="state.selectedField.state !== 'manual'" class="alert alert-warning py-2">
+                                    Core Odoo field. Changes are applied as view overrides. Technical name, type, and relation changes can break existing data.
+                                </div>
+                                <input class="form-control mb-2" t-model="state.selectedField.field_description"/>
                                 <label class="form-label">Technical Name</label>
-                                <input class="form-control mb-2" t-model="state.selectedField.name" disabled="1"/>
+                                <input class="form-control mb-2" t-model="state.selectedField.technical_name" t-att-placeholder="state.selectedField.name"/>
                                 <label class="form-label">Type</label>
-                                <input class="form-control mb-2" t-model="state.selectedField.ttype" disabled="1"/>
+                                <select class="form-select mb-2" t-model="state.selectedField.ttype">
+                                    <option t-foreach="this.fieldTypes" t-as="fieldType" t-key="fieldType[0]" t-att-value="fieldType[0]" t-esc="fieldType[1]"/>
+                                </select>
                                 <label class="form-label">Related Model</label>
-                                <input class="form-control mb-2" t-model="state.selectedField.relation" disabled="1"/>
+                                <input class="form-control mb-2" t-model="state.selectedField.relation"/>
                                 <label class="form-label">Selection Options</label>
-                                <textarea class="form-control mb-2" rows="5" t-model="state.selectedField.selection_options" t-att-disabled="state.selectedField.state !== 'manual' || state.selectedField.ttype !== 'selection'"/>
+                                <textarea class="form-control mb-2" rows="5" t-model="state.selectedField.selection_options" t-att-disabled="state.selectedField.ttype !== 'selection'"/>
                                 <label class="form-label">Help</label>
-                                <textarea class="form-control mb-2" rows="4" t-model="state.selectedField.help" t-att-disabled="state.selectedField.state !== 'manual'"/>
-                                <label class="d-block"><input type="checkbox" t-model="state.selectedField.required" t-att-disabled="state.selectedField.state !== 'manual' || !state.selectedField.can_make_required"/> Required</label>
-                                <label class="d-block"><input type="checkbox" t-model="state.selectedField.readonly" t-att-disabled="state.selectedField.state !== 'manual'"/> Readonly</label>
-                                <button class="btn btn-primary w-100 mt-3" t-on-click="this.updateSelectedField" t-att-disabled="state.busy || state.selectedField.state !== 'manual'">Save Properties</button>
+                                <textarea class="form-control mb-2" rows="4" t-model="state.selectedField.help"/>
+                                <label class="d-block"><input type="checkbox" t-model="state.selectedField.required" t-att-disabled="!state.selectedField.can_make_required"/> Required</label>
+                                <label class="d-block"><input type="checkbox" t-model="state.selectedField.readonly"/> Readonly</label>
+                                <button class="btn btn-primary w-100 mt-3" t-on-click="this.updateSelectedField" t-att-disabled="state.busy">Save Properties</button>
                                 <button class="btn btn-secondary w-100 mt-2" t-on-click="() => this.addSelectedFieldToView('form')" t-att-disabled="state.busy">Add to Form</button>
                                 <button class="btn btn-secondary w-100 mt-2" t-on-click="() => this.addSelectedFieldToView('tree')" t-att-disabled="state.busy">Add to List</button>
                             </t>
@@ -150,9 +161,38 @@
                                     <strong t-esc="view.name"/><small t-esc="view.type"/>
                                 </div>
                             </t>
-                            <t t-elif="['automations', 'access', 'reports'].includes(state.panel)">
-                                <div class="o_mo_studio_panel_title" t-esc="state.panel"/>
-                                <p class="text-muted">This editor stays inside Studio. Use the full advanced editor only for deep technical changes.</p>
+                            <t t-elif="state.panel === 'access'">
+                                <div class="o_mo_studio_panel_title">Access</div>
+                                <div t-if="!state.accessRows.length" class="text-muted">No access rules found for this model.</div>
+                                <div t-foreach="state.accessRows" t-as="row" t-key="row.id" class="o_mo_studio_mini_row">
+                                    <strong t-esc="row.name"/>
+                                    <small>
+                                        <t t-esc="row.group_id and row.group_id[1] or 'All users'"/>
+                                        | R <t t-esc="row.perm_read ? 'Y' : 'N'"/>
+                                        W <t t-esc="row.perm_write ? 'Y' : 'N'"/>
+                                        C <t t-esc="row.perm_create ? 'Y' : 'N'"/>
+                                        D <t t-esc="row.perm_unlink ? 'Y' : 'N'"/>
+                                    </small>
+                                </div>
+                                <button class="btn btn-secondary w-100 mt-2" t-on-click="this.openAccess">Open Access Records</button>
+                            </t>
+                            <t t-elif="state.panel === 'automations'">
+                                <div class="o_mo_studio_panel_title">Automations</div>
+                                <div t-if="!state.automationRows.length" class="text-muted">No automations found for this model.</div>
+                                <div t-foreach="state.automationRows" t-as="row" t-key="row.id" class="o_mo_studio_mini_row">
+                                    <strong t-esc="row.name"/>
+                                    <small t-esc="row.trigger"/>
+                                </div>
+                                <button class="btn btn-secondary w-100 mt-2" t-on-click="this.openAutomations">Open Automations</button>
+                            </t>
+                            <t t-elif="state.panel === 'reports'">
+                                <div class="o_mo_studio_panel_title">Reports</div>
+                                <div t-if="!state.reportRows.length" class="text-muted">No reports found for this model.</div>
+                                <div t-foreach="state.reportRows" t-as="row" t-key="row.id" class="o_mo_studio_mini_row">
+                                    <strong t-esc="row.name"/>
+                                    <small t-esc="row.report_type"/>
+                                </div>
+                                <button class="btn btn-secondary w-100 mt-2" t-on-click="this.openReports">Open Reports</button>
                             </t>
                             <t t-else="">
                                 <div class="o_mo_studio_panel_title">Studio Panel</div>

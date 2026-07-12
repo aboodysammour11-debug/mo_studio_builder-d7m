@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6f4566"/>
+      <stop offset="1" stop-color="#2f2638"/>
+    </linearGradient>
+    <linearGradient id="card" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#f6f2f7"/>
+    </linearGradient>
+  </defs>
+  <rect width="1280" height="640" rx="0" fill="url(#bg)"/>
+  <circle cx="1130" cy="120" r="160" fill="#8b5b80" opacity=".38"/>
+  <circle cx="110" cy="560" r="220" fill="#00a09d" opacity=".18"/>
+  <rect x="72" y="82" width="1136" height="476" rx="28" fill="url(#card)" opacity=".98"/>
+  <rect x="780" y="132" width="360" height="356" rx="18" fill="#ffffff" stroke="#d9d2dc"/>
+  <rect x="812" y="166" width="120" height="32" rx="6" fill="#6f4566"/>
+  <rect x="812" y="222" width="274" height="22" rx="5" fill="#e3dbe5"/>
+  <rect x="812" y="266" width="274" height="22" rx="5" fill="#e3dbe5"/>
+  <rect x="812" y="310" width="168" height="22" rx="5" fill="#e3dbe5"/>
+  <rect x="812" y="376" width="116" height="42" rx="7" fill="#6f4566"/>
+  <rect x="950" y="376" width="116" height="42" rx="7" fill="#00a09d"/>
+  <g transform="translate(112,146)">
+    <rect width="120" height="120" rx="28" fill="#6f4566"/>
+    <path d="M32 82V42l28 18 28-18v40L60 100z" fill="#ffffff" opacity=".95"/>
+    <path d="M32 42 60 24l28 18-28 18z" fill="#e9dce8"/>
+    <circle cx="91" cy="28" r="13" fill="#00a09d"/>
+    <path d="M91 19v18M82 28h18" stroke="#fff" stroke-width="5" stroke-linecap="round"/>
+  </g>
+  <text x="112" y="316" fill="#17212b" font-family="Segoe UI, Arial, sans-serif" font-size="62" font-weight="800">MO Studio Builder</text>
+  <text x="114" y="372" fill="#6f4566" font-family="Segoe UI, Arial, sans-serif" font-size="30" font-weight="700">Visual App Builder for Odoo 17</text>
+  <text x="116" y="432" fill="#5d6b7a" font-family="Segoe UI, Arial, sans-serif" font-size="22">Drag fields, edit properties, preview layouts, and update generated apps.</text>
+  <rect x="116" y="474" width="282" height="52" rx="12" fill="#f3eef4" stroke="#d9d2dc"/>
+  <text x="142" y="508" fill="#17212b" font-family="Segoe UI, Arial, sans-serif" font-size="21" font-weight="700">abdulrahman sammour</text>
+</svg>
