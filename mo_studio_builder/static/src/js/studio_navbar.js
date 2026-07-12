@@ -5,6 +5,7 @@ import { NavBar } from "@web/webclient/navbar/navbar";
 import { patch } from "@web/core/utils/patch";
 import { useService } from "@web/core/utils/hooks";
 import { Component, onWillStart, useState } from "@odoo/owl";
+import { session } from "@web/session";
 
 class StudioPageEditorDialog extends Component {
     setup() {
@@ -24,6 +25,11 @@ class StudioPageEditorDialog extends Component {
             selectedTool: "char",
             panel: "properties",
             viewType: this.props.viewType || "form",
+            formFieldOrder: [],
+            draggingFieldName: null,
+            accessRows: [],
+            automationRows: [],
+            reportRows: [],
             field: this.defaultField(),
         });
         onWillStart(async () => this.loadContext());
@@ -65,9 +71,14 @@ class StudioPageEditorDialog extends Component {
             "id", "display_name", "__last_update", "create_uid", "create_date",
             "write_uid", "write_date",
         ]);
-        return this.state.fields
-            .filter((field) => !hiddenNames.has(field.name))
-            .slice(0, 36);
+        const fieldByName = Object.fromEntries(this.state.fields.map((field) => [field.name, field]));
+        const ordered = (this.state.formFieldOrder || [])
+            .map((name) => fieldByName[name])
+            .filter((field) => field && !hiddenNames.has(field.name));
+        const remaining = this.state.fields.filter((field) =>
+            !hiddenNames.has(field.name) && !ordered.some((item) => item.name === field.name)
+        );
+        return [...ordered, ...remaining].slice(0, 80);
     }
 
     async loadContext() {
@@ -76,7 +87,11 @@ class StudioPageEditorDialog extends Component {
         this.state.modelLabel = data.model_label;
         this.state.title = `Studio Builder - ${data.model_label}`;
         this.state.fields = data.fields;
+        this.state.formFieldOrder = data.form_field_order || [];
         this.state.views = data.views;
+        this.state.accessRows = data.access_rows || [];
+        this.state.automationRows = data.automation_rows || [];
+        this.state.reportRows = data.report_rows || [];
         if (!this.state.selectedField && data.fields.length) {
             this.state.selectedField = data.fields.find((field) => field.state === "manual") || data.fields[0];
         }
@@ -152,6 +167,7 @@ class StudioPageEditorDialog extends Component {
 
     async createFieldAt(type = this.state.selectedTool, afterFieldName = null) {
         const defaults = this.defaultValuesForType(type);
+        const createdName = defaults.technical_name;
         this.state.busy = true;
         try {
             const data = await this.orm.call("mo.studio.builder.app", "add_field_to_model", [
@@ -166,8 +182,13 @@ class StudioPageEditorDialog extends Component {
                 },
             ]);
             this.state.fields = data.fields;
+            this.state.formFieldOrder = this.insertNameAfter(
+                data.form_field_order || this.state.formFieldOrder || [],
+                createdName,
+                afterFieldName
+            );
             this.state.views = data.views;
-            const created = data.fields.find((field) => field.name === defaults.technical_name);
+            const created = data.fields.find((field) => field.name === createdName);
             this.state.selectedField = created || data.fields.find((field) => field.field_description === defaults.name) || null;
             this.state.panel = "properties";
             this.state.dirty = true;
@@ -177,15 +198,72 @@ class StudioPageEditorDialog extends Component {
         }
     }
 
+    insertNameAfter(order, fieldName, afterFieldName) {
+        const next = (order || []).filter((name) => name !== fieldName);
+        if (!afterFieldName) {
+            next.unshift(fieldName);
+            return next;
+        }
+        const index = next.indexOf(afterFieldName);
+        if (index < 0) {
+            next.push(fieldName);
+        } else {
+            next.splice(index + 1, 0, fieldName);
+        }
+        return next;
+    }
+
     startDrag(ev, type) {
         this.selectFieldType(type);
         ev.dataTransfer.effectAllowed = "copy";
-        ev.dataTransfer.setData("text/plain", type);
+        ev.dataTransfer.setData("application/x-mo-studio-field-type", type);
+        ev.dataTransfer.setData("text/plain", `new:${type}`);
+        this.state.draggingFieldName = null;
+    }
+
+    startFieldDrag(ev, field) {
+        ev.stopPropagation();
+        this.selectExistingField(field);
+        ev.dataTransfer.effectAllowed = "move";
+        ev.dataTransfer.setData("application/x-mo-studio-existing-field", field.name);
+        ev.dataTransfer.setData("text/plain", `existing:${field.name}`);
+        this.state.draggingFieldName = field.name;
     }
 
     async dropField(ev, afterFieldName = null) {
-        const type = ev.dataTransfer.getData("text/plain") || this.state.selectedTool;
+        ev.preventDefault();
+        ev.stopPropagation();
+        const existing = ev.dataTransfer.getData("application/x-mo-studio-existing-field");
+        if (existing) {
+            await this.moveField(existing, afterFieldName);
+            return;
+        }
+        const type = ev.dataTransfer.getData("application/x-mo-studio-field-type") || this.state.selectedTool;
         await this.createFieldAt(type, afterFieldName);
+    }
+
+    async moveField(fieldName, afterFieldName = null) {
+        if (!fieldName || fieldName === afterFieldName) {
+            return;
+        }
+        this.state.formFieldOrder = this.insertNameAfter(this.state.formFieldOrder || [], fieldName, afterFieldName);
+        this.state.dirty = true;
+        this.state.busy = true;
+        try {
+            const data = await this.orm.call("mo.studio.builder.app", "move_field_in_view", [
+                this.state.model,
+                fieldName,
+                afterFieldName,
+                this.state.viewType || "form",
+            ]);
+            this.state.fields = data.fields;
+            this.state.formFieldOrder = data.form_field_order || this.state.formFieldOrder;
+            this.state.views = data.views;
+            this.notification.add("Field moved in the preview.", { type: "success" });
+        } finally {
+            this.state.busy = false;
+            this.state.draggingFieldName = null;
+        }
     }
 
     async removeField(fieldName) {
@@ -213,7 +291,10 @@ class StudioPageEditorDialog extends Component {
             const data = await this.orm.call("mo.studio.builder.app", "update_field_on_model", [
                 this.state.model,
                 this.state.selectedField.name,
-                { ...this.state.selectedField },
+                {
+                    ...this.state.selectedField,
+                    technical_name: this.state.selectedField.technical_name || this.state.selectedField.name,
+                },
             ]);
             this.state.fields = data.fields;
             const refreshed = data.fields.find((field) => field.name === this.state.selectedField.name);
@@ -225,7 +306,7 @@ class StudioPageEditorDialog extends Component {
         }
     }
 
-    async addSelectedFieldToView(viewType = this.state.viewType) {
+    async addSelectedFieldToView(viewType = this.state.viewType, afterFieldName = null) {
         if (!this.state.selectedField) {
             return;
         }
@@ -235,8 +316,10 @@ class StudioPageEditorDialog extends Component {
                 this.state.model,
                 this.state.selectedField.name,
                 viewType,
+                afterFieldName,
             ]);
             this.state.views = data.views;
+            this.state.formFieldOrder = data.form_field_order || this.state.formFieldOrder;
             this.state.dirty = true;
             this.notification.add(`Field added to ${viewType} preview.`, { type: "success" });
         } finally {
@@ -324,7 +407,15 @@ patch(NavBar.prototype, {
         this.notification = useService("notification");
     },
 
+    canUseStudioBuilder() {
+        return session.mo_studio_builder_access === true;
+    },
+
     openStudioBuilder() {
+        if (session.mo_studio_builder_access !== true) {
+            this.notification.add("You do not have MO Studio Builder access.", { type: "warning" });
+            return;
+        }
         const controller = this.actionService.currentController;
         const props = controller && controller.props;
         const action = controller && controller.action;

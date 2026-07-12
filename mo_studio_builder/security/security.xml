@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="group_mo_studio_builder_user" model="res.groups">
+        <field name="name">MO Studio Builder Access</field>
+        <field name="category_id" ref="base.module_category_administration_administration"/>
+        <field name="comment">Allows selected users to see and use the MO Studio Builder button.</field>
+    </record>
+</odoo>
