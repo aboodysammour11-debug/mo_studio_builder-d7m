@@ -1,3 +1,0 @@
-id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
-access_mo_studio_builder_app_system,mo.studio.builder.app system,model_mo_studio_builder_app,base.group_system,1,1,1,1
-access_mo_studio_builder_field_system,mo.studio.builder.field system,model_mo_studio_builder_field,base.group_system,1,1,1,1
