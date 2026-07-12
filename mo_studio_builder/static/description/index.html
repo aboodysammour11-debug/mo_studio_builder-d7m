@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>MO Studio Builder</title>
+    <style>
+        :root {
+            --ink: #17212b;
+            --muted: #5d6b7a;
+            --line: #d9e2ea;
+            --panel: #f6f9fb;
+            --brand: #0f8f87;
+            --accent: #6f4566;
+        }
+        body {
+            margin: 0;
+            background: #fff;
+            color: var(--ink);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            line-height: 1.6;
+        }
+        .mo-wrap {
+            max-width: 1180px;
+            margin: 0 auto;
+            padding: 0 22px 48px;
+        }
+        .mo-hero {
+            display: grid;
+            grid-template-columns: minmax(0, 1.05fr) minmax(320px, .95fr);
+            gap: 34px;
+            align-items: center;
+            padding: 44px 0 34px;
+            border-bottom: 1px solid var(--line);
+        }
+        .mo-eyebrow {
+            color: var(--brand);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            font-size: 13px;
+        }
+        h1 {
+            margin: 10px 0 14px;
+            font-size: 44px;
+            line-height: 1.12;
+        }
+        h2 {
+            margin: 42px 0 16px;
+            font-size: 28px;
+        }
+        h3 {
+            margin: 0 0 8px;
+            font-size: 18px;
+        }
+        .mo-lead {
+            margin: 0;
+            color: var(--muted);
+            font-size: 18px;
+        }
+        .mo-author {
+            margin-top: 18px;
+            font-weight: 600;
+        }
+        .mo-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 24px;
+        }
+        .mo-pill {
+            padding: 8px 12px;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            color: var(--ink);
+            background: #fff;
+            font-size: 14px;
+        }
+        .mo-hero img,
+        .mo-shot img {
+            display: block;
+            width: 100%;
+            border-radius: 8px;
+            border: 1px solid var(--line);
+            box-shadow: 0 16px 38px rgba(23, 33, 43, .12);
+        }
+        .mo-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 18px;
+        }
+        .mo-card {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            padding: 20px;
+            background: #fff;
+        }
+        .mo-card p,
+        .mo-text {
+            color: var(--muted);
+            margin: 0;
+        }
+        .mo-split {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+            gap: 22px;
+            align-items: start;
+        }
+        .mo-list {
+            padding-left: 20px;
+            color: var(--muted);
+        }
+        .mo-band {
+            margin-top: 34px;
+            padding: 24px;
+            border-radius: 8px;
+            background: var(--panel);
+            border: 1px solid var(--line);
+        }
+        @media (max-width: 860px) {
+            .mo-hero,
+            .mo-grid,
+            .mo-split {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 34px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="mo-wrap">
+        <section class="mo-hero">
+            <div>
+                <div class="mo-eyebrow">Odoo 17 Visual App Builder</div>
+                <h1>MO Studio Builder</h1>
+                <p class="mo-lead">
+                    Build custom Odoo applications, add fields, arrange form layouts,
+                    update list views, and open a Studio-like editor from any supported page.
+                </p>
+                <div class="mo-author">Created by abdulrahman sammour</div>
+                <div class="mo-actions">
+                    <span class="mo-pill">Header Studio button</span>
+                    <span class="mo-pill">Live preview editor</span>
+                    <span class="mo-pill">Drag and drop fields</span>
+                    <span class="mo-pill">Selection options</span>
+                    <span class="mo-pill">Generated app menus</span>
+                </div>
+            </div>
+            <img src="main_screenshot.png" alt="MO Studio Builder visual editor">
+        </section>
+
+        <section>
+            <h2>Design Odoo apps directly from the interface</h2>
+            <p class="mo-text">
+                MO Studio Builder gives administrators a productive studio workspace for
+                creating business apps without writing Python or XML. Create a model,
+                choose suggested features, add custom fields, preview the page, then apply
+                the changes when the design is ready.
+            </p>
+        </section>
+
+        <section>
+            <h2>Highlights</h2>
+            <div class="mo-grid">
+                <article class="mo-card">
+                    <h3>Studio entry point</h3>
+                    <p>Open the builder from the Odoo header while working inside a page.</p>
+                </article>
+                <article class="mo-card">
+                    <h3>Live page preview</h3>
+                    <p>Add, select, and edit fields in a preview canvas before updating the real app.</p>
+                </article>
+                <article class="mo-card">
+                    <h3>Complete field setup</h3>
+                    <p>Configure labels, technical names, help text, required, readonly, relations, and selection options.</p>
+                </article>
+                <article class="mo-card">
+                    <h3>Generated menus</h3>
+                    <p>Created apps appear as normal Odoo applications with their own menu and icon.</p>
+                </article>
+                <article class="mo-card">
+                    <h3>Admin shortcuts</h3>
+                    <p>Jump to fields, views, access, reports, and automations from the builder toolbar.</p>
+                </article>
+                <article class="mo-card">
+                    <h3>Safer updates</h3>
+                    <p>Preview changes first, then apply them through the Update App command.</p>
+                </article>
+            </div>
+        </section>
+
+        <section>
+            <h2>Builder screens</h2>
+            <div class="mo-split">
+                <div class="mo-shot">
+                    <img src="screenshot_builder.png" alt="App builder setup screen">
+                </div>
+                <div class="mo-shot">
+                    <img src="screenshot_properties.png" alt="Field properties panel">
+                </div>
+            </div>
+        </section>
+
+        <section class="mo-band">
+            <h2>What you can create</h2>
+            <ul class="mo-list">
+                <li>Custom request, approval, tracking, rental, support, and operations apps.</li>
+                <li>Form and list views with text, numeric, date, boolean, image, relation, monetary, and selection fields.</li>
+                <li>Applications with contact details, assigned users, dates, tags, notes, company fields, archiving, and sorting.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Compatibility</h2>
+            <p class="mo-text">
+                Built for Odoo 17 Community and Enterprise. Install it like a normal Odoo
+                addon, update the Apps list, then open MO Studio Builder from the Odoo apps menu.
+            </p>
+        </section>
+    </main>
+</body>
+</html>
