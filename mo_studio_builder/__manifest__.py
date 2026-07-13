@@ -13,7 +13,7 @@ interface directly inside Odoo.
     "author": "abdulrahman sammour",
     "website": "https://digitalshopin.com/",
     "license": "OPL-1",
-    "price": 5.00,
+    "price": 99.00,
     "currency": "EUR",
     "depends": ["base", "web", "base_automation"],
     "data": [
