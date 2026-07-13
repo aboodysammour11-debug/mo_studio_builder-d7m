@@ -218,7 +218,7 @@ approved:Approved</pre>
         <field name="context">{'search_default_created': 1}</field>
     </record>
 
-    <menuitem id="menu_mo_studio_builder_root" name="Studio Builder" sequence="5" groups="base.group_system" web_icon="mo_studio_builder,static/description/icon.svg"/>
+    <menuitem id="menu_mo_studio_builder_root" name="Studio Builder" sequence="5" groups="base.group_system" web_icon="mo_studio_builder,static/description/icon.png"/>
     <menuitem id="menu_mo_studio_builder_apps" name="App Builder" parent="menu_mo_studio_builder_root" action="action_mo_studio_builder_app" sequence="10" groups="base.group_system"/>
     <menuitem id="menu_mo_studio_generated_apps" name="Generated Apps" parent="menu_mo_studio_builder_root" sequence="20" groups="base.group_system"/>
 </odoo>

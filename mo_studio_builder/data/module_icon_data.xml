@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo noupdate="0">
     <record id="base.module_mo_studio_builder" model="ir.module.module">
-        <field name="icon">/mo_studio_builder/static/description/studio_icon.svg</field>
+        <field name="icon">/mo_studio_builder/static/description/icon.png</field>
     </record>
 </odoo>
