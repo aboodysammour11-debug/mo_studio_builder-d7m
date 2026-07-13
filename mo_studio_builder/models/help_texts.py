@@ -11,7 +11,7 @@ class MoStudioBuilderAppHelp(models.Model):
         help="The app name that will appear in the normal Odoo menu after creating the app."
     )
     menu_icon = fields.Char(
-        help="Path of the menu icon file. Example: mo_studio_builder/static/description/icon.svg."
+        help="Path of the menu icon file. Example: mo_studio_builder/static/description/icon.png."
     )
     feature_contact = fields.Boolean(
         help="Adds customer/contact fields such as Customer, Phone, and Email to the generated app."

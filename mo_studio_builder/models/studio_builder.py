@@ -72,7 +72,7 @@ class StudioBuilderApp(models.Model):
     model_name = fields.Char(string="Technical Model Name", related="model_id.model", readonly=True)
     action_id = fields.Many2one("ir.actions.act_window", readonly=True, ondelete="set null")
     menu_id = fields.Many2one("ir.ui.menu", readonly=True, ondelete="set null")
-    menu_icon = fields.Char(default="mo_studio_builder,static/description/icon.svg")
+    menu_icon = fields.Char(default="mo_studio_builder,static/description/icon.png")
     menu_icon_upload = fields.Binary(string="App Icon")
     menu_icon_filename = fields.Char(string="App Icon Filename")
     field_line_ids = fields.One2many(
@@ -907,7 +907,7 @@ class StudioBuilderApp(models.Model):
                 "web_icon_data": self.menu_icon_upload,
             })
         else:
-            values["web_icon"] = self.menu_icon or "mo_studio_builder,static/description/icon.svg"
+            values["web_icon"] = self.menu_icon or "mo_studio_builder,static/description/icon.png"
         if menu:
             menu.write(values)
         else:
